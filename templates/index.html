@@ -1,7 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Medical Assistant</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediGuide AI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -9,27 +21,390 @@
 
 <body>
 
-<div class="chat-container">
+<div class="app">
 
-    <h1>🩺 Medical Assistant</h1>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
 
-    <div id="chat-box" class="chat-box">
-        <p><b>Assistant:</b> Hello! How can I help you today?</p>
-    </div>
+        <div class="brand">
 
-    <div class="input-area">
+            <img src="{{ url_for('static', filename='mediguide-logo.png') }}"
+                 alt="MediGuide AI Logo"
+                 class="brand-logo">
 
-        <input
-            id="user-input"
-            type="text"
-            placeholder="Type your health question..."
-        >
+            <div class="brand-text">
+                <h2>MediGuide AI</h2>
+                <span data-i18n="subtitle">
+                    Your AI Health Information Assistant
+                </span>
+            </div>
 
-        <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <button class="new-chat" id="newChatBtn" type="button">
+            <i class="fa-solid fa-plus"></i>
+            <span data-i18n="newChat">New Chat</span>
+        </button>
+
+        <div class="sidebar-section">
+
+            <div class="section-title">
+                <span data-i18n="recents">RECENTS</span>
+
+                <button id="clearRecent" type="button" title="Clear recents">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+
+            <div id="recentChats" class="recent-list">
+                <p class="empty-recent" data-i18n="noRecent">
+                    No recent chats
+                </p>
+            </div>
+
+        </div>
+
+        <div class="sidebar-bottom">
+
+            <button class="side-button" id="savedBtn" type="button">
+                <i class="fa-regular fa-bookmark"></i>
+                <span data-i18n="saved">Saved Chats</span>
+            </button>
+
+            <button class="side-button" id="settingsBtn" type="button">
+                <i class="fa-solid fa-gear"></i>
+                <span data-i18n="settings">Settings</span>
+            </button>
+
+            <button class="side-button" id="aboutBtn" type="button">
+                <i class="fa-solid fa-circle-info"></i>
+                <span data-i18n="about">About</span>
+            </button>
+
+        </div>
+
+        <div class="sidebar-disclaimer">
+
+            <i class="fa-solid fa-shield-heart"></i>
+
+            <p data-i18n="disclaimer">
+                General health information only.
+                Not a replacement for professional medical advice.
+            </p>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <header class="topbar">
+
+            <div class="mobile-left">
+
+                <button class="menu-btn" id="menuBtn" type="button">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="mobile-brand">
+                    <img src="{{ url_for('static', filename='mediguide-logo.png') }}"
+                         alt="MediGuide AI Logo">
+                    <span>MediGuide AI</span>
+                </div>
+
+            </div>
+
+            <div class="top-actions">
+
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot"></span>
+
+                    <span id="statusText" data-i18n="online">
+                        Online
+                    </span>
+                </div>
+
+                <button class="icon-btn"
+                        id="themeBtn"
+                        type="button"
+                        title="Dark mode">
+
+                    <i class="fa-solid fa-moon"></i>
+
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- CHAT -->
+        <section class="chat-area">
+
+            <div class="welcome" id="welcome">
+
+                <img src="{{ url_for('static', filename='mediguide-logo.png') }}"
+                     alt="MediGuide AI Logo"
+                     class="welcome-logo">
+
+                <h1 data-i18n="welcomeTitle">
+                    How can I help you today?
+                </h1>
+
+                <p data-i18n="welcomeText">
+                    Ask MediGuide AI about symptoms,
+                    health conditions and general health information.
+                </p>
+
+                <div class="suggestions">
+
+                    <button class="suggestion"
+                            type="button"
+                            data-question="What are the symptoms of anemia?">
+
+                        <i class="fa-solid fa-droplet"></i>
+
+                        <span data-i18n="anemia">
+                            Symptoms of anemia
+                        </span>
+
+                    </button>
+
+                    <button class="suggestion"
+                            type="button"
+                            data-question="I have sneezing and runny nose">
+
+                        <i class="fa-solid fa-head-side-cough"></i>
+
+                        <span data-i18n="allergy">
+                            Sneezing and runny nose
+                        </span>
+
+                    </button>
+
+                    <button class="suggestion"
+                            type="button"
+                            data-question="What causes fever?">
+
+                        <i class="fa-solid fa-temperature-half"></i>
+
+                        <span data-i18n="fever">
+                            What causes fever?
+                        </span>
+
+                    </button>
+
+                    <button class="suggestion"
+                            type="button"
+                            data-question="What are common symptoms of diabetes?">
+
+                        <i class="fa-solid fa-heart-pulse"></i>
+
+                        <span data-i18n="diabetes">
+                            Diabetes symptoms
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="messages" id="messages"></div>
+
+        </section>
+
+
+        <!-- INPUT -->
+        <section class="input-section">
+
+            <div class="input-box">
+
+                <button class="attach-btn"
+                        id="uploadBtn"
+                        type="button"
+                        title="Upload image">
+
+                    <i class="fa-solid fa-paperclip"></i>
+
+                </button>
+
+                <input type="file"
+                       id="imageInput"
+                       accept="image/*"
+                       hidden>
+
+                <textarea
+                    id="messageInput"
+                    placeholder="Ask a health-related question..."
+                    data-placeholder="inputPlaceholder"
+                    rows="1"></textarea>
+
+                <button class="send-btn"
+                        id="sendBtn"
+                        type="button"
+                        title="Send">
+
+                    <i class="fa-solid fa-paper-plane"></i>
+
+                </button>
+
+            </div>
+
+            <div id="imagePreview"
+                 class="image-preview"></div>
+
+            <p class="input-note" data-i18n="bottomNote">
+                MediGuide AI provides general health information
+                and does not replace professional medical advice.
+            </p>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- SETTINGS -->
+<div class="modal-overlay" id="settingsModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>
+                <i class="fa-solid fa-gear"></i>
+                <span data-i18n="settings">Settings</span>
+            </h2>
+
+            <button class="close-modal"
+                    type="button"
+                    data-close="settingsModal">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <div class="setting-item">
+
+            <div>
+                <strong data-i18n="language">Language</strong>
+
+                <span data-i18n="languageText">
+                    Choose your preferred language
+                </span>
+            </div>
+
+            <select id="languageSelect">
+
+                <option value="en">English</option>
+                <option value="ta">தமிழ்</option>
+                <option value="tl">Tanglish</option>
+
+            </select>
+
+        </div>
+
+        <div class="setting-item">
+
+            <div>
+                <strong data-i18n="darkMode">Dark Mode</strong>
+
+                <span data-i18n="darkModeText">
+                    Change website appearance
+                </span>
+            </div>
+
+            <label class="switch">
+
+                <input type="checkbox" id="darkToggle">
+
+                <span class="slider"></span>
+
+            </label>
+
+        </div>
+
+        <div class="setting-item">
+
+            <div>
+
+                <strong data-i18n="chatHistory">
+                    Chat History
+                </strong>
+
+                <span data-i18n="chatHistoryText">
+                    Remove your recent conversations
+                </span>
+
+            </div>
+
+            <button class="danger-btn"
+                    id="clearHistoryBtn"
+                    type="button"
+                    data-i18n="clear">
+                Clear
+            </button>
+
+        </div>
 
     </div>
 
 </div>
+
+
+<!-- ABOUT -->
+<div class="modal-overlay" id="aboutModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>
+                <i class="fa-solid fa-heart-pulse"></i>
+                MediGuide AI
+            </h2>
+
+            <button class="close-modal"
+                    type="button"
+                    data-close="aboutModal">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <p class="about-text" data-i18n="aboutText">
+            MediGuide AI is an AI-powered health information
+            assistant designed to provide general information
+            about common health topics and symptoms.
+        </p>
+
+        <div class="about-card">
+            <i class="fa-solid fa-robot"></i>
+            <span>Gemini AI</span>
+        </div>
+
+        <div class="about-card">
+            <i class="fa-solid fa-database"></i>
+            <span>Firebase Firestore</span>
+        </div>
+
+        <div class="about-card">
+            <i class="fa-brands fa-python"></i>
+            <span>Python Flask</span>
+        </div>
+
+    </div>
+
+</div>
+
 
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 
