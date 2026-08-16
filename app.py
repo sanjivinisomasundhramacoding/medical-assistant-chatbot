@@ -63,6 +63,182 @@ LANGUAGE_NAMES = {
 
 
 # =========================================================
+# HEALTHCARE QUESTION FILTER
+# =========================================================
+
+def is_healthcare_question(message):
+
+    healthcare_keywords = [
+
+        # -------------------------------------------------
+        # GENERAL HEALTH
+        # -------------------------------------------------
+
+        "health",
+        "healthy",
+        "healthcare",
+        "medical",
+        "medicine",
+        "medicines",
+        "symptom",
+        "symptoms",
+        "disease",
+        "diseases",
+        "illness",
+        "condition",
+        "treatment",
+        "doctor",
+        "hospital",
+        "clinic",
+        "diagnosis",
+        "diagnose",
+
+        # -------------------------------------------------
+        # COMMON SYMPTOMS
+        # -------------------------------------------------
+
+        "pain",
+        "fever",
+        "cold",
+        "common cold",
+        "cough",
+        "coughing",
+        "headache",
+        "head pain",
+        "migraine",
+        "sneezing",
+        "sneeze",
+        "runny nose",
+        "blocked nose",
+        "itching",
+        "itchy",
+        "rash",
+        "vomiting",
+        "vomit",
+        "diarrhea",
+        "dizziness",
+        "dizzy",
+        "weakness",
+        "tired",
+        "fatigue",
+        "breathing",
+        "breath",
+        "shortness of breath",
+        "chest pain",
+        "chest tightness",
+        "stomach pain",
+        "stomach ache",
+        "abdominal pain",
+        "stomach cramps",
+        "sore throat",
+        "throat pain",
+        "swallowing",
+        "body pain",
+
+        # -------------------------------------------------
+        # MEDICAL CONDITIONS
+        # -------------------------------------------------
+
+        "asthma",
+        "diabetes",
+        "allergy",
+        "allergies",
+        "infection",
+        "blood pressure",
+        "high blood pressure",
+        "low blood pressure",
+        "hypertension",
+        "heart disease",
+        "heart problem",
+        "lung disease",
+        "migraine",
+        "anemia",
+        "anaemia",
+
+        # -------------------------------------------------
+        # BODY / HEALTH
+        # -------------------------------------------------
+
+        "skin",
+        "skin problem",
+        "eye",
+        "eyes",
+        "ear",
+        "ears",
+        "nose",
+        "throat",
+        "stomach",
+        "heart",
+        "lung",
+        "lungs",
+        "blood",
+        "brain",
+        "bone",
+        "bones",
+        "muscle",
+        "muscles",
+        "joint",
+        "joints",
+
+        # -------------------------------------------------
+        # MEDICINE RELATED
+        # -------------------------------------------------
+
+        "tablet",
+        "tablets",
+        "capsule",
+        "capsules",
+        "drug",
+        "drugs",
+        "dosage",
+        "dose",
+        "side effect",
+        "side effects",
+        "prescription",
+        "antibiotic",
+        "antibiotics",
+        "painkiller",
+        "painkiller",
+        "medicine allergy",
+
+        # -------------------------------------------------
+        # WOMEN'S HEALTH
+        # -------------------------------------------------
+
+        "pregnancy",
+        "pregnant",
+        "period",
+        "periods",
+        "menstrual",
+        "menstruation",
+        "pregnancy symptoms",
+
+        # -------------------------------------------------
+        # EMERGENCY / FIRST AID
+        # -------------------------------------------------
+
+        "emergency",
+        "first aid",
+        "bleeding",
+        "seizure",
+        "unconscious",
+        "fainted",
+        "fainting",
+        "burn",
+        "burns",
+        "injury",
+        "injured"
+    ]
+
+    message_lower = message.lower()
+
+    return any(
+        keyword in message_lower
+        for keyword in healthcare_keywords
+    )
+
+
+# =========================================================
 # HOME
 # =========================================================
 
@@ -100,13 +276,50 @@ def chat():
     if not message:
 
         empty_messages = {
-            "en": "Please enter a health-related question.",
-            "ta": "தயவுசெய்து உடல்நலம் தொடர்பான கேள்வியை உள்ளிடுங்கள்.",
-            "tl": "Please health-related question enter pannunga."
+            "en":
+                "Please enter a health-related question.",
+
+            "ta":
+                "தயவுசெய்து உடல்நலம் தொடர்பான கேள்வியை உள்ளிடுங்கள்.",
+
+            "tl":
+                "Please health-related question enter pannunga."
         }
 
         return jsonify({
             "reply": empty_messages[language]
+        })
+
+    # -----------------------------------------------------
+    # HEALTHCARE ONLY FILTER
+    # -----------------------------------------------------
+
+    if not is_healthcare_question(message):
+
+        non_healthcare_messages = {
+
+            "en":
+                "I'm MediGuide AI, a healthcare assistant. "
+                "I can only answer health, medical, medicine, "
+                "and symptom-related questions. "
+                "Please ask a healthcare-related question.",
+
+            "ta":
+                "நான் MediGuide AI, ஒரு healthcare assistant. "
+                "உடல்நலம், மருத்துவம், மருந்துகள் மற்றும் "
+                "அறிகுறிகள் தொடர்பான கேள்விகளுக்கு மட்டும் "
+                "பதிலளிக்க முடியும். "
+                "தயவுசெய்து healthcare தொடர்பான கேள்வியை கேளுங்கள்.",
+
+            "tl":
+                "Naan MediGuide AI, oru healthcare assistant. "
+                "Health, medical, medicine and symptom-related "
+                "questions-ku mattum answer panna mudiyum. "
+                "Please healthcare-related question kekkunga."
+        }
+
+        return jsonify({
+            "reply": non_healthcare_messages[language]
         })
 
     # -----------------------------------------------------
@@ -121,45 +334,72 @@ def chat():
 
     keywords = {
 
+        # -------------------------------------------------
         # Allergy
+        # -------------------------------------------------
+
         "sneezing": "allergy",
         "runny nose": "allergy",
         "itchy eyes": "allergy",
         "skin rash": "allergy",
         "itching": "allergy",
 
+        # -------------------------------------------------
         # Asthma
+        # -------------------------------------------------
+
         "wheezing": "asthma",
         "shortness of breath": "asthma",
         "chest tightness": "asthma",
 
+        # -------------------------------------------------
         # Migraine
+        # -------------------------------------------------
+
         "migraine": "migraine",
 
+        # -------------------------------------------------
         # Fever
+        # -------------------------------------------------
+
         "fever": "fever",
         "high temperature": "fever",
 
+        # -------------------------------------------------
         # Cough
+        # -------------------------------------------------
+
         "cough": "cough",
         "coughing": "cough",
 
+        # -------------------------------------------------
         # Headache
+        # -------------------------------------------------
+
         "headache": "headache",
         "head pain": "headache",
 
+        # -------------------------------------------------
         # Stomach Ache
+        # -------------------------------------------------
+
         "stomach ache": "stomach_ache",
         "stomach pain": "stomach_ache",
         "abdominal pain": "stomach_ache",
         "stomach cramps": "stomach_ache",
 
+        # -------------------------------------------------
         # Food Poisoning
+        # -------------------------------------------------
+
         "food poisoning": "food_poisoning",
         "vomiting": "food_poisoning",
         "diarrhea": "food_poisoning",
 
+        # -------------------------------------------------
         # Sore Throat
+        # -------------------------------------------------
+
         "sore throat": "sore_throat",
         "throat pain": "sore_throat",
         "pain while swallowing": "sore_throat"
@@ -304,7 +544,14 @@ def chat():
     try:
 
         prompt = f"""
-You are MediGuide AI, a helpful medical information chatbot.
+You are MediGuide AI, a healthcare information assistant.
+
+IMPORTANT:
+You must ONLY answer healthcare, medical, medicine,
+symptom, disease, treatment, or general health-related questions.
+
+The backend has already filtered the user's question,
+so assume that the question is healthcare-related.
 
 User question:
 {message}
@@ -343,6 +590,8 @@ If the user describes emergency symptoms such as:
 - severe bleeding
 - seizures
 - sudden severe weakness
+- sudden confusion
+- difficulty speaking
 - rapidly worsening symptoms
 
 advise the user to seek urgent medical attention.
