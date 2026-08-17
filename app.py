@@ -476,8 +476,9 @@ def chat():
                         f"Warning signs: "
                         f"{warning}\n\n"
 
-                        f"Please consult a healthcare professional "
-                        f"for proper diagnosis and treatment."
+                        f"Note: This information is for general health guidance only."
+
+                        
                     )
 
                 # -------------------------------------------------
@@ -499,8 +500,8 @@ def chat():
                         f"எச்சரிக்கை அறிகுறிகள்: "
                         f"{warning}\n\n"
 
-                        f"சரியான diagnosis மற்றும் treatment-க்கு "
-                        f"மருத்துவ நிபுணரை அணுகவும்."
+                        f"குறிப்பு: இது பொதுவான உடல்நல தகவலுக்காக மட்டுமே."
+
                     )
 
                 # -------------------------------------------------
@@ -522,8 +523,8 @@ def chat():
                         f"Warning signs: "
                         f"{warning}\n\n"
 
-                        f"Correct diagnosis and treatment-ku "
-                        f"healthcare professional-a consult pannunga."
+                        f"Note: Idhu general health information mattume."
+
                     )
 
                 return jsonify({
