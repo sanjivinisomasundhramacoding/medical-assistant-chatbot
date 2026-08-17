@@ -134,6 +134,9 @@ def is_healthcare_question(message):
         "throat pain",
         "swallowing",
         "body pain",
+        "hand pain",
+        "hand hurts",
+        "hand ache",
 
         # -------------------------------------------------
         # MEDICAL CONDITIONS
@@ -151,9 +154,10 @@ def is_healthcare_question(message):
         "heart disease",
         "heart problem",
         "lung disease",
-        "migraine",
         "anemia",
         "anaemia",
+        "dengue",
+        "flu",
 
         # -------------------------------------------------
         # BODY / HEALTH
@@ -179,6 +183,11 @@ def is_healthcare_question(message):
         "muscles",
         "joint",
         "joints",
+        "hand",
+        "hands",
+        "wrist",
+        "finger",
+        "fingers",
 
         # -------------------------------------------------
         # MEDICINE RELATED
@@ -197,7 +206,6 @@ def is_healthcare_question(message):
         "prescription",
         "antibiotic",
         "antibiotics",
-        "painkiller",
         "painkiller",
         "medicine allergy",
 
@@ -239,11 +247,123 @@ def is_healthcare_question(message):
 
 
 # =========================================================
+# BETTER QUESTION UNDERSTANDING
+# =========================================================
+
+QUESTION_PATTERNS = {
+
+    # -------------------------------------------------
+    # Hand Pain
+    # -------------------------------------------------
+
+    "hand pain": "hand_pain",
+    "hand hurts": "hand_pain",
+    "my hand hurts": "hand_pain",
+    "pain in my hand": "hand_pain",
+    "hand is hurting": "hand_pain",
+    "my hand is hurting": "hand_pain",
+    "hand ache": "hand_pain",
+    "my hand is aching": "hand_pain",
+    "pain on my hand": "hand_pain",
+
+    # -------------------------------------------------
+    # Headache
+    # -------------------------------------------------
+
+    "headache": "headache",
+    "head pain": "headache",
+    "my head hurts": "headache",
+    "head is hurting": "headache",
+    "pain in my head": "headache",
+
+    # -------------------------------------------------
+    # Stomach Pain
+    # -------------------------------------------------
+
+    "stomach pain": "stomach_ache",
+    "stomach ache": "stomach_ache",
+    "my stomach hurts": "stomach_ache",
+    "pain in my stomach": "stomach_ache",
+    "stomach is hurting": "stomach_ache",
+    "abdominal pain": "stomach_ache",
+    "stomach cramps": "stomach_ache",
+
+    # -------------------------------------------------
+    # Fever
+    # -------------------------------------------------
+
+    "fever": "fever",
+    "i have fever": "fever",
+    "high temperature": "fever",
+    "my body is hot": "fever",
+
+    # -------------------------------------------------
+    # Cough
+    # -------------------------------------------------
+
+    "cough": "cough",
+    "coughing": "cough",
+    "i am coughing": "cough",
+
+    # -------------------------------------------------
+    # Sore Throat
+    # -------------------------------------------------
+
+    "sore throat": "sore_throat",
+    "throat pain": "sore_throat",
+    "my throat hurts": "sore_throat",
+    "pain in my throat": "sore_throat",
+    "pain while swallowing": "sore_throat",
+
+    # -------------------------------------------------
+    # Allergy
+    # -------------------------------------------------
+
+    "sneezing": "allergy",
+    "runny nose": "allergy",
+    "itchy eyes": "allergy",
+    "skin rash": "allergy",
+    "itching": "allergy",
+
+    # -------------------------------------------------
+    # Asthma
+    # -------------------------------------------------
+
+    "wheezing": "asthma",
+    "shortness of breath": "asthma",
+    "chest tightness": "asthma",
+
+    # -------------------------------------------------
+    # Migraine
+    # -------------------------------------------------
+
+    "migraine": "migraine",
+
+    # -------------------------------------------------
+    # Dengue
+    # -------------------------------------------------
+
+    "dengue": "dengue",
+    "dengue fever": "dengue",
+    "symptoms of dengue": "dengue",
+
+    # -------------------------------------------------
+    # Food Poisoning
+    # -------------------------------------------------
+
+    "food poisoning": "food_poisoning",
+    "vomiting": "food_poisoning",
+    "diarrhea": "food_poisoning"
+}
+
+
+# =========================================================
 # HOME
 # =========================================================
 
 @app.route("/")
 def home():
+
     return render_template("index.html")
 
 
@@ -256,18 +376,26 @@ def chat():
 
     data = request.get_json() or {}
 
-    message = data.get("message", "").strip()
+    message = data.get(
+        "message",
+        ""
+    ).strip()
 
-    language = data.get("language", "en")
+    language = data.get(
+        "language",
+        "en"
+    )
 
     # -----------------------------------------------------
     # VALIDATE LANGUAGE
     # -----------------------------------------------------
 
     if language not in LANGUAGE_NAMES:
+
         language = "en"
 
     language_name = LANGUAGE_NAMES[language]
+
 
     # -----------------------------------------------------
     # EMPTY MESSAGE
@@ -276,6 +404,7 @@ def chat():
     if not message:
 
         empty_messages = {
+
             "en":
                 "Please enter a health-related question.",
 
@@ -289,6 +418,7 @@ def chat():
         return jsonify({
             "reply": empty_messages[language]
         })
+
 
     # -----------------------------------------------------
     # HEALTHCARE ONLY FILTER
@@ -322,101 +452,27 @@ def chat():
             "reply": non_healthcare_messages[language]
         })
 
+
     # -----------------------------------------------------
     # LOWERCASE VERSION
     # -----------------------------------------------------
 
     message_lower = message.lower()
 
-    # =====================================================
-    # FIRESTORE KEYWORDS
-    # =====================================================
-
-    keywords = {
-
-        # -------------------------------------------------
-        # Allergy
-        # -------------------------------------------------
-
-        "sneezing": "allergy",
-        "runny nose": "allergy",
-        "itchy eyes": "allergy",
-        "skin rash": "allergy",
-        "itching": "allergy",
-
-        # -------------------------------------------------
-        # Asthma
-        # -------------------------------------------------
-
-        "wheezing": "asthma",
-        "shortness of breath": "asthma",
-        "chest tightness": "asthma",
-
-        # -------------------------------------------------
-        # Migraine
-        # -------------------------------------------------
-
-        "migraine": "migraine",
-
-        # -------------------------------------------------
-        # Fever
-        # -------------------------------------------------
-
-        "fever": "fever",
-        "high temperature": "fever",
-
-        # -------------------------------------------------
-        # Cough
-        # -------------------------------------------------
-
-        "cough": "cough",
-        "coughing": "cough",
-
-        # -------------------------------------------------
-        # Headache
-        # -------------------------------------------------
-
-        "headache": "headache",
-        "head pain": "headache",
-
-        # -------------------------------------------------
-        # Stomach Ache
-        # -------------------------------------------------
-
-        "stomach ache": "stomach_ache",
-        "stomach pain": "stomach_ache",
-        "abdominal pain": "stomach_ache",
-        "stomach cramps": "stomach_ache",
-
-        # -------------------------------------------------
-        # Food Poisoning
-        # -------------------------------------------------
-
-        "food poisoning": "food_poisoning",
-        "vomiting": "food_poisoning",
-        "diarrhea": "food_poisoning",
-
-        # -------------------------------------------------
-        # Sore Throat
-        # -------------------------------------------------
-
-        "sore throat": "sore_throat",
-        "throat pain": "sore_throat",
-        "pain while swallowing": "sore_throat"
-    }
 
     # =====================================================
-    # FIND MATCHING FIRESTORE DOCUMENT
+    # FIND MEDICAL TOPIC
     # =====================================================
 
     document_id = None
 
-    for keyword, doc_id in keywords.items():
+    for pattern, doc_id in QUESTION_PATTERNS.items():
 
-        if keyword in message_lower:
+        if pattern in message_lower:
 
             document_id = doc_id
             break
+
 
     # =====================================================
     # FIRESTORE RESPONSE
@@ -457,6 +513,7 @@ def chat():
                     ""
                 )
 
+
                 # -------------------------------------------------
                 # ENGLISH
                 # -------------------------------------------------
@@ -464,22 +521,19 @@ def chat():
                 if language == "en":
 
                     reply = (
-                        f"It sounds like you may be experiencing "
-                        f"{topic} symptoms.\n\n"
-
-                        f"Common symptoms include: "
+                        f"### Possible Causes / Symptoms\n"
                         f"{symptoms}\n\n"
 
-                        f"Advice: "
+                        f"### What You Can Do\n"
                         f"{advice}\n\n"
 
-                        f"Warning signs: "
+                        f"### Warning Signs\n"
                         f"{warning}\n\n"
 
-                        f"Note: This information is for general health guidance only."
-
-                        
+                        f"Note: This information is for general "
+                        f"health guidance only."
                     )
+
 
                 # -------------------------------------------------
                 # TAMIL
@@ -488,21 +542,19 @@ def chat():
                 elif language == "ta":
 
                     reply = (
-                        f"உங்களுக்கு {topic} தொடர்பான "
-                        f"அறிகுறிகள் இருக்கலாம்.\n\n"
-
-                        f"பொதுவான அறிகுறிகள்: "
+                        f"### பொதுவான அறிகுறிகள்\n"
                         f"{symptoms}\n\n"
 
-                        f"ஆலோசனை: "
+                        f"### என்ன செய்யலாம்\n"
                         f"{advice}\n\n"
 
-                        f"எச்சரிக்கை அறிகுறிகள்: "
+                        f"### எச்சரிக்கை அறிகுறிகள்\n"
                         f"{warning}\n\n"
 
-                        f"குறிப்பு: இது பொதுவான உடல்நல தகவலுக்காக மட்டுமே."
-
+                        f"குறிப்பு: இது பொதுவான உடல்நல "
+                        f"தகவலுக்காக மட்டுமே."
                     )
+
 
                 # -------------------------------------------------
                 # TANGLISH
@@ -511,25 +563,24 @@ def chat():
                 else:
 
                     reply = (
-                        f"Ungalukku {topic} symptoms "
-                        f"irukkalaam.\n\n"
-
-                        f"Common symptoms: "
+                        f"### Common Symptoms\n"
                         f"{symptoms}\n\n"
 
-                        f"Advice: "
+                        f"### Enna Pannalam\n"
                         f"{advice}\n\n"
 
-                        f"Warning signs: "
+                        f"### Warning Signs\n"
                         f"{warning}\n\n"
 
-                        f"Note: Idhu general health information mattume."
-
+                        f"Note: Idhu general health "
+                        f"information mattume."
                     )
+
 
                 return jsonify({
                     "reply": reply
                 })
+
 
         except Exception as e:
 
@@ -537,6 +588,7 @@ def chat():
                 "Firestore Error:",
                 e
             )
+
 
     # =====================================================
     # GEMINI RESPONSE
@@ -551,9 +603,6 @@ IMPORTANT:
 You must ONLY answer healthcare, medical, medicine,
 symptom, disease, treatment, or general health-related questions.
 
-The backend has already filtered the user's question,
-so assume that the question is healthcare-related.
-
 User question:
 {message}
 
@@ -567,7 +616,6 @@ LANGUAGE INSTRUCTION:
 - If the selected language is Tamil, answer in clear and easy-to-understand Tamil.
 - If the selected language is Tanglish, answer in natural Tanglish using English letters.
 - Do not mix languages unnecessarily.
-- Keep the answer concise and easy to understand.
 
 
 MEDICAL SAFETY RULES:
@@ -579,11 +627,12 @@ MEDICAL SAFETY RULES:
 - Do not provide specific medication dosages.
 - Do not tell the user to start or stop prescription medicines.
 - Do not automatically tell the user to consult a doctor.
-- Only mention seeing a doctor or healthcare professional if the user specifically asks about it, or if the symptoms described are severe, persistent, worsening, or include emergency warning signs.
+- Mention professional medical help only when there is a genuine reason.
+
 
 EMERGENCY SAFETY:
 
-If the user describes emergency symptoms such as:
+If the user describes symptoms such as:
 
 - severe difficulty breathing
 - severe chest pain
@@ -598,23 +647,44 @@ If the user describes emergency symptoms such as:
 advise the user to seek urgent medical attention.
 
 
-ANSWER STYLE:
+ANSWER FORMAT:
 
-- Use simple language.
-- Be professional and friendly.
-- Keep the response reasonably short.
-- Use bullet points when helpful.
-- Do not unnecessarily repeat the user's question.
+Give the answer in a clear and structured format.
+
+Use these sections when relevant:
+
+### Possible Causes
+- Give a few common possible causes.
+- Do not diagnose.
+
+### What You Can Do
+- Give simple and safe general steps.
+- Use short bullet points.
+
+### When to Seek Medical Help
+- Include this only when symptoms are severe,
+  persistent, worsening, or have warning signs.
+
+Keep the response reasonably short.
+
+Do not unnecessarily repeat the user's question.
+
+Do not repeatedly say "consult a doctor".
+
+Do not recommend prescription medicines or specific dosages.
 """
+
 
         response = client.models.generate_content(
             model="gemini-3-flash-preview",
             contents=prompt
         )
 
+
         return jsonify({
             "reply": response.text
         })
+
 
     except Exception as e:
 
