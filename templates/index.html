@@ -17,14 +17,312 @@
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+
+    /* =========================
+       AUTH SCREEN
+    ========================= */
+
+    .auth-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #f6f8fc;
+    }
+
+    .auth-box {
+        width: min(420px, 100%);
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 34px;
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+        text-align: center;
+    }
+
+    .auth-logo-wrap {
+        margin-bottom: 12px;
+    }
+
+    .auth-logo {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
+    }
+
+    .auth-box h2 {
+        margin: 0;
+        font-size: 26px;
+    }
+
+    .auth-subtitle {
+        margin: 8px 0 24px;
+        opacity: 0.7;
+    }
+
+    .auth-box input {
+        width: 100%;
+        padding: 13px 14px;
+        margin-bottom: 12px;
+        border: 1px solid #dbe1ea;
+        border-radius: 10px;
+        font: inherit;
+        outline: none;
+    }
+
+    .auth-box input:focus {
+        border-color: #2563eb;
+    }
+
+    .auth-primary-btn,
+    .auth-secondary-btn,
+    .google-btn {
+        width: 100%;
+        padding: 13px 14px;
+        border-radius: 10px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+    }
+
+    .auth-primary-btn {
+        border: 0;
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .auth-secondary-btn {
+        border: 1px solid #dbe1ea;
+        background: #fff;
+        color: #1f2937;
+    }
+
+    .google-btn {
+        border: 1px solid #dbe1ea;
+        background: #ffffff;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .google-btn:hover {
+        background: #f8fafc;
+    }
+
+    .google-btn i {
+        font-size: 17px;
+    }
+
+    .auth-primary-btn:disabled,
+    .auth-secondary-btn:disabled,
+    .google-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* =========================
+       AUTH DIVIDER
+    ========================= */
+
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 18px 0 4px;
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+
+    .auth-message {
+        min-height: 22px;
+        margin: 14px 0 0;
+        font-size: 14px;
+    }
+
+    .auth-message.error {
+        color: #dc2626;
+    }
+
+    .auth-message.success {
+        color: #16a34a;
+    }
+
+    .auth-note {
+        margin: 16px 0 0;
+        font-size: 12px;
+        opacity: 0.6;
+        line-height: 1.5;
+    }
+
+    /* =========================
+       LOGGED USER
+    ========================= */
+
+    .logged-user {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        overflow: hidden;
+    }
+
+    .logged-user span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .logout-button {
+        cursor: pointer;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 600px) {
+
+        .auth-box {
+            padding: 28px 22px;
+        }
+
+    }
+
+</style>
+
 </head>
 
 <body>
 
-<div class="app">
+<!-- =========================================================
+     AUTH SCREEN
+========================================================= -->
+
+<div id="authScreen" class="auth-screen">
+
+    <div class="auth-box">
+
+        <div class="auth-logo-wrap">
+
+            <img src="{{ url_for('static', filename='mediguide-logo.png') }}"
+                 alt="MediGuide AI Logo"
+                 class="auth-logo">
+
+        </div>
+
+        <h2>MediGuide AI</h2>
+
+        <p class="auth-subtitle">
+            Sign in to continue
+        </p>
+
+
+        <!-- EMAIL -->
+
+        <input type="email"
+               id="authEmail"
+               placeholder="Email address"
+               autocomplete="email">
+
+
+        <!-- PASSWORD -->
+
+        <input type="password"
+               id="authPassword"
+               placeholder="Password"
+               autocomplete="current-password">
+
+
+        <!-- LOGIN -->
+
+        <button type="button"
+                id="loginBtn"
+                class="auth-primary-btn">
+
+            Login
+
+        </button>
+
+
+        <!-- CREATE ACCOUNT -->
+
+        <button type="button"
+                id="registerBtn"
+                class="auth-secondary-btn">
+
+            Create Account
+
+        </button>
+
+
+        <!-- DIVIDER -->
+
+        <div class="auth-divider">
+            <span>OR</span>
+        </div>
+
+
+        <!-- GOOGLE LOGIN -->
+
+        <button type="button"
+                id="googleBtn"
+                class="google-btn">
+
+            <i class="fa-brands fa-google"></i>
+
+            <span>Continue with Google</span>
+
+        </button>
+
+
+        <!-- MESSAGE -->
+
+        <p id="authMessage"
+           class="auth-message">
+        </p>
+
+
+        <p class="auth-note">
+
+            Your account is used to keep your AI Agent data separate.
+
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MAIN APPLICATION
+========================================================= -->
+
+<div class="app"
+     id="mainApp"
+     style="display: none;">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
+
+    <aside class="sidebar"
+           id="sidebar">
+
+
+        <!-- BRAND -->
 
         <div class="brand">
 
@@ -33,63 +331,160 @@
                  class="brand-logo">
 
             <div class="brand-text">
-                <h2>MediGuide AI</h2>
+
+                <h2>
+                    MediGuide AI
+                </h2>
+
                 <span data-i18n="subtitle">
                     Your AI Health Information Assistant
                 </span>
+
             </div>
 
         </div>
 
-        <button class="new-chat" id="newChatBtn" type="button">
+
+        <!-- NEW CHAT -->
+
+        <button class="new-chat"
+                id="newChatBtn"
+                type="button">
+
             <i class="fa-solid fa-plus"></i>
-            <span data-i18n="newChat">New Chat</span>
+
+            <span data-i18n="newChat">
+                New Chat
+            </span>
+
         </button>
+
+
+        <!-- RECENTS -->
 
         <div class="sidebar-section">
 
             <div class="section-title">
-                <span data-i18n="recents">RECENTS</span>
 
-                <button id="clearRecent" type="button" title="Clear recents">
+                <span data-i18n="recents">
+                    RECENTS
+                </span>
+
+                <button id="clearRecent"
+                        type="button"
+                        title="Clear recents">
+
                     <i class="fa-solid fa-trash"></i>
+
                 </button>
+
             </div>
 
-            <div id="recentChats" class="recent-list">
-                <p class="empty-recent" data-i18n="noRecent">
+
+            <div id="recentChats"
+                 class="recent-list">
+
+                <p class="empty-recent"
+                   data-i18n="noRecent">
+
                     No recent chats
+
                 </p>
+
             </div>
 
         </div>
+
+
+        <!-- SIDEBAR BOTTOM -->
 
         <div class="sidebar-bottom">
 
-            <button class="side-button" id="savedBtn" type="button">
+
+            <!-- LOGGED USER -->
+
+            <div class="logged-user">
+
+                <i class="fa-solid fa-user"></i>
+
+                <span id="userEmailLabel"></span>
+
+            </div>
+
+
+            <!-- LOGOUT -->
+
+            <button class="side-button logout-button"
+                    id="logoutBtn"
+                    type="button">
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                <span>
+                    Logout
+                </span>
+
+            </button>
+
+
+            <!-- SAVED -->
+
+            <button class="side-button"
+                    id="savedBtn"
+                    type="button">
+
                 <i class="fa-regular fa-bookmark"></i>
-                <span data-i18n="saved">Saved Chats</span>
+
+                <span data-i18n="saved">
+                    Saved Chats
+                </span>
+
             </button>
 
-            <button class="side-button" id="settingsBtn" type="button">
+
+            <!-- SETTINGS -->
+
+            <button class="side-button"
+                    id="settingsBtn"
+                    type="button">
+
                 <i class="fa-solid fa-gear"></i>
-                <span data-i18n="settings">Settings</span>
+
+                <span data-i18n="settings">
+                    Settings
+                </span>
+
             </button>
 
-            <button class="side-button" id="aboutBtn" type="button">
+
+            <!-- ABOUT -->
+
+            <button class="side-button"
+                    id="aboutBtn"
+                    type="button">
+
                 <i class="fa-solid fa-circle-info"></i>
-                <span data-i18n="about">About</span>
+
+                <span data-i18n="about">
+                    About
+                </span>
+
             </button>
 
         </div>
+
+
+        <!-- DISCLAIMER -->
 
         <div class="sidebar-disclaimer">
 
             <i class="fa-solid fa-shield-heart"></i>
 
             <p data-i18n="disclaimer">
+
                 General health information only.
                 Not a replacement for professional medical advice.
+
             </p>
 
         </div>
@@ -97,34 +492,63 @@
     </aside>
 
 
-    <!-- MAIN -->
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
     <main class="main">
+
+
+        <!-- TOP BAR -->
 
         <header class="topbar">
 
+
             <div class="mobile-left">
 
-                <button class="menu-btn" id="menuBtn" type="button">
+
+                <button class="menu-btn"
+                        id="menuBtn"
+                        type="button">
+
                     <i class="fa-solid fa-bars"></i>
+
                 </button>
 
+
                 <div class="mobile-brand">
+
                     <img src="{{ url_for('static', filename='mediguide-logo.png') }}"
                          alt="MediGuide AI Logo">
-                    <span>MediGuide AI</span>
+
+                    <span>
+                        MediGuide AI
+                    </span>
+
                 </div>
 
             </div>
 
+
+            <!-- TOP ACTIONS -->
+
             <div class="top-actions">
 
-                <div class="connection-status" id="connectionStatus">
+
+                <div class="connection-status"
+                     id="connectionStatus">
+
                     <span class="status-dot"></span>
 
-                    <span id="statusText" data-i18n="online">
+                    <span id="statusText"
+                          data-i18n="online">
+
                         Online
+
                     </span>
+
                 </div>
+
 
                 <button class="icon-btn"
                         id="themeBtn"
@@ -140,25 +564,45 @@
         </header>
 
 
-        <!-- CHAT -->
+        <!-- =================================================
+             CHAT AREA
+        ================================================== -->
+
         <section class="chat-area">
 
-            <div class="welcome" id="welcome">
+
+            <!-- WELCOME -->
+
+            <div class="welcome"
+                 id="welcome">
+
 
                 <img src="{{ url_for('static', filename='mediguide-logo.png') }}"
                      alt="MediGuide AI Logo"
                      class="welcome-logo">
 
+
                 <h1 data-i18n="welcomeTitle">
+
                     How can I help you today?
+
                 </h1>
 
+
                 <p data-i18n="welcomeText">
+
                     Ask MediGuide AI about symptoms,
                     health conditions and general health information.
+
                 </p>
 
+
+                <!-- SUGGESTIONS -->
+
                 <div class="suggestions">
+
+
+                    <!-- ANEMIA -->
 
                     <button class="suggestion"
                             type="button"
@@ -167,10 +611,15 @@
                         <i class="fa-solid fa-droplet"></i>
 
                         <span data-i18n="anemia">
+
                             Symptoms of anemia
+
                         </span>
 
                     </button>
+
+
+                    <!-- ALLERGY -->
 
                     <button class="suggestion"
                             type="button"
@@ -179,10 +628,15 @@
                         <i class="fa-solid fa-head-side-cough"></i>
 
                         <span data-i18n="allergy">
+
                             Sneezing and runny nose
+
                         </span>
 
                     </button>
+
+
+                    <!-- FEVER -->
 
                     <button class="suggestion"
                             type="button"
@@ -191,10 +645,15 @@
                         <i class="fa-solid fa-temperature-half"></i>
 
                         <span data-i18n="fever">
+
                             What causes fever?
+
                         </span>
 
                     </button>
+
+
+                    <!-- DIABETES -->
 
                     <button class="suggestion"
                             type="button"
@@ -203,7 +662,9 @@
                         <i class="fa-solid fa-heart-pulse"></i>
 
                         <span data-i18n="diabetes">
+
                             Diabetes symptoms
+
                         </span>
 
                     </button>
@@ -212,15 +673,27 @@
 
             </div>
 
-            <div class="messages" id="messages"></div>
+
+            <!-- MESSAGES -->
+
+            <div class="messages"
+                 id="messages">
+            </div>
 
         </section>
 
 
-        <!-- INPUT -->
+        <!-- =================================================
+             INPUT
+        ================================================== -->
+
         <section class="input-section">
 
+
             <div class="input-box">
+
+
+                <!-- UPLOAD -->
 
                 <button class="attach-btn"
                         id="uploadBtn"
@@ -231,16 +704,23 @@
 
                 </button>
 
+
                 <input type="file"
                        id="imageInput"
                        accept="image/*"
                        hidden>
+
+
+                <!-- MESSAGE -->
 
                 <textarea
                     id="messageInput"
                     placeholder="Ask a health-related question..."
                     data-placeholder="inputPlaceholder"
                     rows="1"></textarea>
+
+
+                <!-- SEND -->
 
                 <button class="send-btn"
                         id="sendBtn"
@@ -253,12 +733,22 @@
 
             </div>
 
-            <div id="imagePreview"
-                 class="image-preview"></div>
 
-            <p class="input-note" data-i18n="bottomNote">
+            <!-- IMAGE PREVIEW -->
+
+            <div id="imagePreview"
+                 class="image-preview">
+            </div>
+
+
+            <!-- NOTE -->
+
+            <p class="input-note"
+               data-i18n="bottomNote">
+
                 MediGuide AI provides general health information
                 and does not replace professional medical advice.
+
             </p>
 
         </section>
@@ -268,17 +758,31 @@
 </div>
 
 
-<!-- SETTINGS -->
-<div class="modal-overlay" id="settingsModal">
+<!-- =========================================================
+     SETTINGS
+========================================================= -->
+
+<div class="modal-overlay"
+     id="settingsModal">
+
 
     <div class="modal">
+
+
+        <!-- HEADER -->
 
         <div class="modal-header">
 
             <h2>
+
                 <i class="fa-solid fa-gear"></i>
-                <span data-i18n="settings">Settings</span>
+
+                <span data-i18n="settings">
+                    Settings
+                </span>
+
             </h2>
+
 
             <button class="close-modal"
                     type="button"
@@ -290,45 +794,73 @@
 
         </div>
 
+
+        <!-- LANGUAGE -->
+
         <div class="setting-item">
 
             <div>
-                <strong data-i18n="language">Language</strong>
+
+                <strong data-i18n="language">
+                    Language
+                </strong>
 
                 <span data-i18n="languageText">
                     Choose your preferred language
                 </span>
+
             </div>
+
 
             <select id="languageSelect">
 
-                <option value="en">English</option>
-                <option value="ta">தமிழ்</option>
-                <option value="tl">Tanglish</option>
+                <option value="en">
+                    English
+                </option>
+
+                <option value="ta">
+                    தமிழ்
+                </option>
+
+                <option value="tl">
+                    Tanglish
+                </option>
 
             </select>
 
         </div>
 
+
+        <!-- DARK MODE -->
+
         <div class="setting-item">
 
             <div>
-                <strong data-i18n="darkMode">Dark Mode</strong>
+
+                <strong data-i18n="darkMode">
+                    Dark Mode
+                </strong>
 
                 <span data-i18n="darkModeText">
                     Change website appearance
                 </span>
+
             </div>
+
 
             <label class="switch">
 
-                <input type="checkbox" id="darkToggle">
+                <input type="checkbox"
+                       id="darkToggle">
 
                 <span class="slider"></span>
 
             </label>
 
         </div>
+
+
+        <!-- CHAT HISTORY -->
 
         <div class="setting-item">
 
@@ -344,11 +876,14 @@
 
             </div>
 
+
             <button class="danger-btn"
                     id="clearHistoryBtn"
                     type="button"
                     data-i18n="clear">
+
                 Clear
+
             </button>
 
         </div>
@@ -358,17 +893,29 @@
 </div>
 
 
-<!-- ABOUT -->
-<div class="modal-overlay" id="aboutModal">
+<!-- =========================================================
+     ABOUT
+========================================================= -->
+
+<div class="modal-overlay"
+     id="aboutModal">
+
 
     <div class="modal">
+
+
+        <!-- HEADER -->
 
         <div class="modal-header">
 
             <h2>
+
                 <i class="fa-solid fa-heart-pulse"></i>
+
                 MediGuide AI
+
             </h2>
+
 
             <button class="close-modal"
                     type="button"
@@ -380,25 +927,55 @@
 
         </div>
 
-        <p class="about-text" data-i18n="aboutText">
+
+        <!-- ABOUT TEXT -->
+
+        <p class="about-text"
+           data-i18n="aboutText">
+
             MediGuide AI is an AI-powered health information
             assistant designed to provide general information
             about common health topics and symptoms.
+
         </p>
 
+
+        <!-- AI -->
+
         <div class="about-card">
+
             <i class="fa-solid fa-robot"></i>
-            <span>Gemini AI</span>
+
+            <span>
+                AI Assistant
+            </span>
+
         </div>
 
+
+        <!-- FIREBASE -->
+
         <div class="about-card">
+
             <i class="fa-solid fa-database"></i>
-            <span>Firebase Firestore</span>
+
+            <span>
+                Firebase Firestore
+            </span>
+
         </div>
 
+
+        <!-- FLASK -->
+
         <div class="about-card">
+
             <i class="fa-brands fa-python"></i>
-            <span>Python Flask</span>
+
+            <span>
+                Python Flask
+            </span>
+
         </div>
 
     </div>
@@ -406,7 +983,543 @@
 </div>
 
 
+<!-- =========================================================
+     FIREBASE AUTHENTICATION
+========================================================= -->
+
+<script type="module">
+
+    import {
+        initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+
+    import {
+        getAnalytics
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+
+
+    import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        signInWithPopup,
+        GoogleAuthProvider,
+        signOut,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+
+    /* =====================================================
+       FIREBASE CONFIG
+    ===================================================== */
+
+    const firebaseConfig = {
+
+        apiKey:
+            "AIzaSyCALJHvsMa_tCnfzGAsZNUCuhQlhDFwrVo",
+
+        authDomain:
+            "medicalassistantai-8955f.firebaseapp.com",
+
+        projectId:
+            "medicalassistantai-8955f",
+
+        storageBucket:
+            "medicalassistantai-8955f.firebasestorage.app",
+
+        messagingSenderId:
+            "73488787175",
+
+        appId:
+            "1:73488787175:web:6c0a1883746f6319a76442",
+
+        measurementId:
+            "G-P5LWB3P9TN"
+    };
+
+
+    /* =====================================================
+       INITIALIZE FIREBASE
+    ===================================================== */
+
+    const app = initializeApp(firebaseConfig);
+
+
+    try {
+
+        getAnalytics(app);
+
+    } catch (error) {
+
+        console.log(
+            "Analytics not available:",
+            error
+        );
+
+    }
+
+
+    const auth = getAuth(app);
+
+
+    /* =====================================================
+       GOOGLE PROVIDER
+    ===================================================== */
+
+    const googleProvider =
+        new GoogleAuthProvider();
+
+
+    googleProvider.setCustomParameters({
+
+        prompt: "select_account"
+
+    });
+
+
+    /* =====================================================
+       GET HTML ELEMENTS
+    ===================================================== */
+
+    const authScreen =
+        document.getElementById("authScreen");
+
+
+    const mainApp =
+        document.getElementById("mainApp");
+
+
+    const emailInput =
+        document.getElementById("authEmail");
+
+
+    const passwordInput =
+        document.getElementById("authPassword");
+
+
+    const loginBtn =
+        document.getElementById("loginBtn");
+
+
+    const registerBtn =
+        document.getElementById("registerBtn");
+
+
+    const googleBtn =
+        document.getElementById("googleBtn");
+
+
+    const logoutBtn =
+        document.getElementById("logoutBtn");
+
+
+    const authMessage =
+        document.getElementById("authMessage");
+
+
+    const userEmailLabel =
+        document.getElementById("userEmailLabel");
+
+
+    /* =====================================================
+       AUTH MESSAGE
+    ===================================================== */
+
+    function showAuthMessage(
+        message,
+        isError = true
+    ) {
+
+        authMessage.textContent =
+            message;
+
+
+        authMessage.className =
+            isError
+                ? "auth-message error"
+                : "auth-message success";
+    }
+
+
+    /* =====================================================
+       FRIENDLY ERROR
+    ===================================================== */
+
+    function friendlyAuthError(error) {
+
+        const code =
+            error?.code || "";
+
+
+        const messages = {
+
+            "auth/invalid-email":
+                "Please enter a valid email address.",
+
+            "auth/missing-password":
+                "Please enter a password.",
+
+            "auth/weak-password":
+                "Password should be at least 6 characters.",
+
+            "auth/email-already-in-use":
+                "This email is already registered. Please login.",
+
+            "auth/invalid-credential":
+                "Invalid email or password.",
+
+            "auth/user-not-found":
+                "No account found with this email.",
+
+            "auth/wrong-password":
+                "Incorrect password.",
+
+            "auth/popup-closed-by-user":
+                "Google sign-in was cancelled.",
+
+            "auth/popup-blocked":
+                "Google sign-in popup was blocked. Please allow popups.",
+
+            "auth/cancelled-popup-request":
+                "Google sign-in was cancelled.",
+
+            "auth/account-exists-with-different-credential":
+                "This email already has an account. Please use the original login method.",
+
+            "auth/operation-not-allowed":
+                "Google Sign-In is not enabled in Firebase."
+
+        };
+
+
+        return messages[code] ||
+            "Authentication failed. Please try again.";
+    }
+
+
+    /* =====================================================
+       EMAIL LOGIN
+    ===================================================== */
+
+    loginBtn.addEventListener(
+        "click",
+        async () => {
+
+            const email =
+                emailInput.value.trim();
+
+
+            const password =
+                passwordInput.value;
+
+
+            if (!email || !password) {
+
+                showAuthMessage(
+                    "Enter your email and password."
+                );
+
+                return;
+            }
+
+
+            loginBtn.disabled = true;
+
+
+            showAuthMessage(
+                "Signing in...",
+                false
+            );
+
+
+            try {
+
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+
+                showAuthMessage(
+                    "Login successful.",
+                    false
+                );
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                showAuthMessage(
+                    friendlyAuthError(error)
+                );
+
+
+            } finally {
+
+                loginBtn.disabled = false;
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       CREATE ACCOUNT
+    ===================================================== */
+
+    registerBtn.addEventListener(
+        "click",
+        async () => {
+
+            const email =
+                emailInput.value.trim();
+
+
+            const password =
+                passwordInput.value;
+
+
+            if (!email || !password) {
+
+                showAuthMessage(
+                    "Enter an email and password."
+                );
+
+                return;
+            }
+
+
+            if (password.length < 6) {
+
+                showAuthMessage(
+                    "Password must be at least 6 characters."
+                );
+
+                return;
+            }
+
+
+            registerBtn.disabled = true;
+
+
+            showAuthMessage(
+                "Creating account...",
+                false
+            );
+
+
+            try {
+
+                await createUserWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+
+                showAuthMessage(
+                    "Account created successfully.",
+                    false
+                );
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                showAuthMessage(
+                    friendlyAuthError(error)
+                );
+
+
+            } finally {
+
+                registerBtn.disabled = false;
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       GOOGLE SIGN-IN
+    ===================================================== */
+
+    googleBtn.addEventListener(
+        "click",
+        async () => {
+
+            googleBtn.disabled = true;
+
+
+            showAuthMessage(
+                "Opening Google Sign-In...",
+                false
+            );
+
+
+            try {
+
+                const result =
+                    await signInWithPopup(
+                        auth,
+                        googleProvider
+                    );
+
+
+                const user =
+                    result.user;
+
+
+                console.log(
+                    "Google login successful:",
+                    user.email
+                );
+
+
+                showAuthMessage(
+                    "Google login successful.",
+                    false
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Google Sign-In Error:",
+                    error
+                );
+
+
+                showAuthMessage(
+                    friendlyAuthError(error)
+                );
+
+
+            } finally {
+
+                googleBtn.disabled = false;
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
+
+    logoutBtn.addEventListener(
+        "click",
+        async () => {
+
+            try {
+
+                await signOut(auth);
+
+            } catch (error) {
+
+                console.error(error);
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       AUTH STATE
+    ===================================================== */
+
+    onAuthStateChanged(
+        auth,
+        (user) => {
+
+            window.currentFirebaseUser =
+                user || null;
+
+
+            if (user) {
+
+                /* Hide login */
+
+                authScreen.style.display =
+                    "none";
+
+
+                /* Show application */
+
+                mainApp.style.display =
+                    "flex";
+
+
+                /* Show logged user email */
+
+                userEmailLabel.textContent =
+                    user.email || "Signed in";
+
+
+                document.body.classList.add(
+                    "authenticated"
+                );
+
+
+                /* Notify existing chatbot JS */
+
+                window.dispatchEvent(
+                    new CustomEvent(
+                        "firebaseUserReady",
+                        {
+                            detail: user
+                        }
+                    )
+                );
+
+
+            } else {
+
+                /* Show login */
+
+                authScreen.style.display =
+                    "flex";
+
+
+                /* Hide application */
+
+                mainApp.style.display =
+                    "none";
+
+
+                userEmailLabel.textContent =
+                    "";
+
+
+                document.body.classList.remove(
+                    "authenticated"
+                );
+
+            }
+
+        }
+    );
+
+</script>
+
+
+<!-- =========================================================
+     EXISTING CHATBOT JAVASCRIPT
+========================================================= -->
+
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
 
 </body>
 </html>

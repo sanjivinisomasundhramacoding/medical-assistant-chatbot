@@ -684,3 +684,27 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
 });
+// =====================================================
+// FIREBASE AUTHENTICATION
+// =====================================================
+
+window.addEventListener("firebaseUserReady", function (event) {
+    const user = event.detail;
+
+    console.log("Logged in user:", user.email);
+
+    // User-specific recent chats
+    renderRecentChats();
+});
+
+
+// Make recent chats user-specific
+function getCurrentUserStorageKey() {
+    const user = window.currentFirebaseUser;
+
+    if (!user) {
+        return null;
+    }
+
+    return "mediguide_recent_" + user.uid;
+}
