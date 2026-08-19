@@ -37,10 +37,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =====================================================
+       FIREBASE USER
+    ===================================================== */
+
+    window.currentFirebaseUser = null;
+
+
+    /* =====================================================
        TOAST
     ===================================================== */
 
     function showToast(message) {
+
+        if (!toast) {
+            return;
+        }
 
         toast.textContent = message;
 
@@ -49,6 +60,22 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(function () {
             toast.classList.remove("show");
         }, 2200);
+    }
+
+
+    /* =====================================================
+       GET USER-SPECIFIC STORAGE KEY
+    ===================================================== */
+
+    function getCurrentUserStorageKey() {
+
+        const user = window.currentFirebaseUser;
+
+        if (!user) {
+            return null;
+        }
+
+        return "mediguide_recent_" + user.uid;
     }
 
 
@@ -63,6 +90,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!message) {
 
             showToast("Please enter a question.");
+
+            return;
+        }
+
+
+        /* =================================================
+           CHECK LOGIN
+        ================================================= */
+
+        const user = window.currentFirebaseUser;
+
+        if (!user) {
+
+            showToast("Please login first.");
 
             return;
         }
@@ -85,9 +126,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
 
+            /* =============================================
+               GET FIREBASE ID TOKEN
+            ============================================= */
+
+            const token = await user.getIdToken(true);
+
+
+            /* =============================================
+               LANGUAGE
+            ============================================= */
+
             const language =
                 languageSelect.value || "en";
 
+
+            /* =============================================
+               SEND REQUEST TO FLASK BACKEND
+            ============================================= */
 
             const response = await fetch(
                 "/chat",
@@ -95,7 +151,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     method: "POST",
 
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
                     },
 
                     body: JSON.stringify({
@@ -106,6 +163,27 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
+            /* =============================================
+               HANDLE UNAUTHORIZED
+            ============================================= */
+
+            if (response.status === 401) {
+
+                loading.remove();
+
+                addMessage(
+                    "Your login session has expired. Please login again.",
+                    "bot"
+                );
+
+                return;
+            }
+
+
+            /* =============================================
+               GET RESPONSE
+            ============================================= */
+
             const data = await response.json();
 
 
@@ -113,18 +191,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             addMessage(
-                data.reply || "Sorry, no response received.",
+                data.reply ||
+                data.error ||
+                "Sorry, no response received.",
                 "bot"
             );
 
+
+            /* =============================================
+               SAVE RECENT CHAT
+            ============================================= */
 
             saveRecentChat(message);
 
         }
 
+
         catch (error) {
 
-            console.error(error);
+            console.error(
+                "Chat Error:",
+                error
+            );
 
             loading.remove();
 
@@ -183,11 +271,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const chatArea =
             document.querySelector(".chat-area");
 
-        chatArea.scrollTop =
-            chatArea.scrollHeight;
+
+        if (chatArea) {
+
+            chatArea.scrollTop =
+                chatArea.scrollHeight;
+
+        }
 
 
         return wrapper;
+
     }
 
 
@@ -291,9 +385,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             autoResize();
 
-            showToast("New chat started.");
+            showToast(
+                "New chat started."
+            );
 
-            sidebar.classList.remove("open");
+            sidebar.classList.remove(
+                "open"
+            );
 
         }
     );
@@ -307,13 +405,28 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
+            const storageKey =
+                getCurrentUserStorageKey();
+
+            if (!storageKey) {
+
+                showToast(
+                    "Please login first."
+                );
+
+                return;
+            }
+
+
             localStorage.removeItem(
-                "mediguide_recent"
+                storageKey
             );
 
             renderRecentChats();
 
-            showToast("Recent chats cleared.");
+            showToast(
+                "Recent chats cleared."
+            );
 
         }
     );
@@ -325,10 +438,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function saveRecentChat(message) {
 
+        const storageKey =
+            getCurrentUserStorageKey();
+
+
+        if (!storageKey) {
+            return;
+        }
+
+
         let recent =
             JSON.parse(
                 localStorage.getItem(
-                    "mediguide_recent"
+                    storageKey
                 ) || "[]"
             );
 
@@ -341,7 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         localStorage.setItem(
-            "mediguide_recent",
+            storageKey,
             JSON.stringify(recent)
         );
 
@@ -351,17 +473,39 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    /* =====================================================
+       RENDER RECENT CHATS
+    ===================================================== */
+
     function renderRecentChats() {
+
+        if (!recentChats) {
+            return;
+        }
+
+
+        const storageKey =
+            getCurrentUserStorageKey();
+
+
+        recentChats.innerHTML = "";
+
+
+        if (!storageKey) {
+
+            recentChats.innerHTML =
+                '<p class="empty-recent">Please login to view recent chats</p>';
+
+            return;
+        }
+
 
         const recent =
             JSON.parse(
                 localStorage.getItem(
-                    "mediguide_recent"
+                    storageKey
                 ) || "[]"
             );
-
-
-        recentChats.innerHTML = "";
 
 
         if (recent.length === 0) {
@@ -370,7 +514,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 '<p class="empty-recent">No recent chats</p>';
 
             return;
-
         }
 
 
@@ -378,6 +521,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const button =
                 document.createElement("div");
+
 
             button.className =
                 "recent-item";
@@ -407,14 +551,13 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-            recentChats.appendChild(button);
+            recentChats.appendChild(
+                button
+            );
 
         });
 
     }
-
-
-    renderRecentChats();
 
 
     /* =====================================================
@@ -425,7 +568,9 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
-            settingsModal.classList.add("show");
+            settingsModal.classList.add(
+                "show"
+            );
 
         }
     );
@@ -439,7 +584,9 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
-            aboutModal.classList.add("show");
+            aboutModal.classList.add(
+                "show"
+            );
 
         }
     );
@@ -460,9 +607,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 const modalId =
                     button.dataset.close;
 
+
                 document.getElementById(
                     modalId
-                ).classList.remove("show");
+                ).classList.remove(
+                    "show"
+                );
 
             }
         );
@@ -482,9 +632,13 @@ document.addEventListener("DOMContentLoaded", function () {
             "click",
             function (event) {
 
-                if (event.target === modal) {
+                if (
+                    event.target === modal
+                ) {
 
-                    modal.classList.remove("show");
+                    modal.classList.remove(
+                        "show"
+                    );
 
                 }
 
@@ -506,7 +660,8 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
-        darkToggle.checked = enabled;
+        darkToggle.checked =
+            enabled;
 
 
         const icon =
@@ -540,7 +695,9 @@ document.addEventListener("DOMContentLoaded", function () {
         function () {
 
             setDarkMode(
-                !document.body.classList.contains("dark")
+                !document.body.classList.contains(
+                    "dark"
+                )
             );
 
         }
@@ -565,7 +722,9 @@ document.addEventListener("DOMContentLoaded", function () {
         ) === "1";
 
 
-    setDarkMode(savedDark);
+    setDarkMode(
+        savedDark
+    );
 
 
     /* =====================================================
@@ -576,19 +735,36 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
+            const storageKey =
+                getCurrentUserStorageKey();
+
+
             messages.innerHTML = "";
 
-            localStorage.removeItem(
-                "mediguide_recent"
-            );
+
+            if (storageKey) {
+
+                localStorage.removeItem(
+                    storageKey
+                );
+
+            }
+
 
             renderRecentChats();
 
+
             welcome.style.display = "";
 
-            settingsModal.classList.remove("show");
 
-            showToast("Chat history cleared.");
+            settingsModal.classList.remove(
+                "show"
+            );
+
+
+            showToast(
+                "Chat history cleared."
+            );
 
         }
     );
@@ -627,6 +803,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const image =
                 document.createElement("img");
 
+
             image.className =
                 "preview-image";
 
@@ -635,7 +812,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 URL.createObjectURL(file);
 
 
-            imagePreview.appendChild(image);
+            imagePreview.appendChild(
+                image
+            );
 
 
             showToast(
@@ -670,41 +849,116 @@ document.addEventListener("DOMContentLoaded", function () {
         "keydown",
         function (event) {
 
-            if (event.key === "Escape") {
+            if (
+                event.key === "Escape"
+            ) {
 
-                settingsModal.classList.remove("show");
+                settingsModal.classList.remove(
+                    "show"
+                );
 
-                aboutModal.classList.remove("show");
+                aboutModal.classList.remove(
+                    "show"
+                );
 
-                sidebar.classList.remove("open");
+                sidebar.classList.remove(
+                    "open"
+                );
 
             }
 
         }
     );
 
-});
-// =====================================================
-// FIREBASE AUTHENTICATION
-// =====================================================
 
-window.addEventListener("firebaseUserReady", function (event) {
-    const user = event.detail;
+    /* =====================================================
+       INITIAL RECENT CHAT RENDER
+    ===================================================== */
 
-    console.log("Logged in user:", user.email);
-
-    // User-specific recent chats
     renderRecentChats();
+
 });
 
 
-// Make recent chats user-specific
-function getCurrentUserStorageKey() {
-    const user = window.currentFirebaseUser;
+/* =========================================================
+   FIREBASE AUTHENTICATION
+========================================================= */
 
-    if (!user) {
-        return null;
+window.addEventListener(
+    "firebaseUserReady",
+    async function (event) {
+
+        const user =
+            event.detail;
+
+
+        if (!user) {
+
+            window.currentFirebaseUser =
+                null;
+
+            console.log(
+                "No Firebase user logged in."
+            );
+
+            return;
+        }
+
+
+        window.currentFirebaseUser =
+            user;
+
+
+        console.log(
+            "Logged in user:",
+            user.email
+        );
+
+
+        console.log(
+            "Firebase UID:",
+            user.uid
+        );
+
+
+        /* =============================================
+           GET ID TOKEN
+        ============================================= */
+
+        try {
+
+            const token =
+                await user.getIdToken();
+
+
+            console.log(
+                "Firebase ID Token received."
+            );
+
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to get Firebase ID Token:",
+                error
+            );
+
+        }
+
+
+        /* =============================================
+           RENDER USER-SPECIFIC RECENT CHATS
+        ============================================= */
+
+        if (
+            typeof renderRecentChats ===
+            "function"
+        ) {
+
+            renderRecentChats();
+
+        }
+
     }
-
-    return "mediguide_recent_" + user.uid;
-}
+);

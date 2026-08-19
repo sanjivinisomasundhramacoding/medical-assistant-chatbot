@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from google import genai
 
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth
 
 from flask import Flask, render_template, request, jsonify
 
@@ -52,13 +52,108 @@ app = Flask(__name__)
 
 
 # =========================================================
+# FIREBASE AUTHENTICATION
+# =========================================================
+
+def verify_firebase_token():
+
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header:
+        return None
+
+    if not auth_header.startswith("Bearer "):
+        return None
+
+    id_token = auth_header.split(
+        "Bearer ",
+        1
+    )[1].strip()
+
+    if not id_token:
+        return None
+
+    try:
+
+        decoded_token = auth.verify_id_token(
+            id_token
+        )
+
+        return decoded_token
+
+    except Exception as e:
+
+        print(
+            "Firebase Authentication Error:",
+            e
+        )
+
+        return None
+
+
+# =========================================================
+# SAVE CHAT HISTORY
+# =========================================================
+
+def save_chat_history(
+    user_uid,
+    user_email,
+    message,
+    reply,
+    language
+):
+
+    try:
+
+        chat_data = {
+
+            "message": message,
+
+            "reply": reply,
+
+            "language": language,
+
+            "user_email": user_email,
+
+            "timestamp":
+                firestore.SERVER_TIMESTAMP
+        }
+
+        db.collection(
+            "users"
+        ).document(
+            user_uid
+        ).collection(
+            "chats"
+        ).add(
+            chat_data
+        )
+
+        print(
+            "Chat history saved for:",
+            user_email
+        )
+
+    except Exception as e:
+
+        print(
+            "Chat History Save Error:",
+            e
+        )
+
+
+# =========================================================
 # LANGUAGE NAMES
 # =========================================================
 
 LANGUAGE_NAMES = {
+
     "en": "English",
+
     "ta": "Tamil",
-    "tl": "Tanglish (Tamil written using English letters)"
+
+    "tl":
+        "Tanglish (Tamil written using English letters)"
 }
 
 
@@ -70,9 +165,7 @@ def is_healthcare_question(message):
 
     healthcare_keywords = [
 
-        # -------------------------------------------------
         # GENERAL HEALTH
-        # -------------------------------------------------
 
         "health",
         "healthy",
@@ -93,9 +186,7 @@ def is_healthcare_question(message):
         "diagnosis",
         "diagnose",
 
-        # -------------------------------------------------
         # COMMON SYMPTOMS
-        # -------------------------------------------------
 
         "pain",
         "fever",
@@ -138,9 +229,7 @@ def is_healthcare_question(message):
         "hand hurts",
         "hand ache",
 
-        # -------------------------------------------------
         # MEDICAL CONDITIONS
-        # -------------------------------------------------
 
         "asthma",
         "diabetes",
@@ -159,9 +248,7 @@ def is_healthcare_question(message):
         "dengue",
         "flu",
 
-        # -------------------------------------------------
         # BODY / HEALTH
-        # -------------------------------------------------
 
         "skin",
         "skin problem",
@@ -189,9 +276,7 @@ def is_healthcare_question(message):
         "finger",
         "fingers",
 
-        # -------------------------------------------------
         # MEDICINE RELATED
-        # -------------------------------------------------
 
         "tablet",
         "tablets",
@@ -209,9 +294,7 @@ def is_healthcare_question(message):
         "painkiller",
         "medicine allergy",
 
-        # -------------------------------------------------
         # WOMEN'S HEALTH
-        # -------------------------------------------------
 
         "pregnancy",
         "pregnant",
@@ -221,9 +304,7 @@ def is_healthcare_question(message):
         "menstruation",
         "pregnancy symptoms",
 
-        # -------------------------------------------------
         # EMERGENCY / FIRST AID
-        # -------------------------------------------------
 
         "emergency",
         "first aid",
@@ -247,14 +328,12 @@ def is_healthcare_question(message):
 
 
 # =========================================================
-# BETTER QUESTION UNDERSTANDING
+# QUESTION PATTERNS
 # =========================================================
 
 QUESTION_PATTERNS = {
 
-    # -------------------------------------------------
-    # Hand Pain
-    # -------------------------------------------------
+    # HAND PAIN
 
     "hand pain": "hand_pain",
     "hand hurts": "hand_pain",
@@ -266,9 +345,7 @@ QUESTION_PATTERNS = {
     "my hand is aching": "hand_pain",
     "pain on my hand": "hand_pain",
 
-    # -------------------------------------------------
-    # Headache
-    # -------------------------------------------------
+    # HEADACHE
 
     "headache": "headache",
     "head pain": "headache",
@@ -276,9 +353,7 @@ QUESTION_PATTERNS = {
     "head is hurting": "headache",
     "pain in my head": "headache",
 
-    # -------------------------------------------------
-    # Stomach Pain
-    # -------------------------------------------------
+    # STOMACH PAIN
 
     "stomach pain": "stomach_ache",
     "stomach ache": "stomach_ache",
@@ -288,26 +363,20 @@ QUESTION_PATTERNS = {
     "abdominal pain": "stomach_ache",
     "stomach cramps": "stomach_ache",
 
-    # -------------------------------------------------
-    # Fever
-    # -------------------------------------------------
+    # FEVER
 
     "fever": "fever",
     "i have fever": "fever",
     "high temperature": "fever",
     "my body is hot": "fever",
 
-    # -------------------------------------------------
-    # Cough
-    # -------------------------------------------------
+    # COUGH
 
     "cough": "cough",
     "coughing": "cough",
     "i am coughing": "cough",
 
-    # -------------------------------------------------
-    # Sore Throat
-    # -------------------------------------------------
+    # SORE THROAT
 
     "sore throat": "sore_throat",
     "throat pain": "sore_throat",
@@ -315,9 +384,7 @@ QUESTION_PATTERNS = {
     "pain in my throat": "sore_throat",
     "pain while swallowing": "sore_throat",
 
-    # -------------------------------------------------
-    # Allergy
-    # -------------------------------------------------
+    # ALLERGY
 
     "sneezing": "allergy",
     "runny nose": "allergy",
@@ -325,31 +392,23 @@ QUESTION_PATTERNS = {
     "skin rash": "allergy",
     "itching": "allergy",
 
-    # -------------------------------------------------
-    # Asthma
-    # -------------------------------------------------
+    # ASTHMA
 
     "wheezing": "asthma",
     "shortness of breath": "asthma",
     "chest tightness": "asthma",
 
-    # -------------------------------------------------
-    # Migraine
-    # -------------------------------------------------
+    # MIGRAINE
 
     "migraine": "migraine",
 
-    # -------------------------------------------------
-    # Dengue
-    # -------------------------------------------------
+    # DENGUE
 
     "dengue": "dengue",
     "dengue fever": "dengue",
     "symptoms of dengue": "dengue",
 
-    # -------------------------------------------------
-    # Food Poisoning
-    # -------------------------------------------------
+    # FOOD POISONING
 
     "food poisoning": "food_poisoning",
     "vomiting": "food_poisoning",
@@ -364,15 +423,68 @@ QUESTION_PATTERNS = {
 @app.route("/")
 def home():
 
-    return render_template("index.html")
+    return render_template(
+        "index.html"
+    )
 
 
 # =========================================================
 # CHAT
 # =========================================================
 
-@app.route("/chat", methods=["POST"])
+@app.route(
+    "/chat",
+    methods=["POST"]
+)
 def chat():
+
+    # =====================================================
+    # VERIFY FIREBASE LOGIN
+    # =====================================================
+
+    user = verify_firebase_token()
+
+    if not user:
+
+        return jsonify({
+
+            "error":
+                "Unauthorized. Please login first."
+
+        }), 401
+
+
+    # =====================================================
+    # USER INFORMATION
+    # =====================================================
+
+    user_uid = user.get(
+        "uid"
+    )
+
+    user_email = user.get(
+        "email",
+        ""
+    )
+
+    print("----------------------------------------")
+
+    print(
+        "Authenticated User:",
+        user_email
+    )
+
+    print(
+        "User UID:",
+        user_uid
+    )
+
+    print("----------------------------------------")
+
+
+    # =====================================================
+    # GET REQUEST DATA
+    # =====================================================
 
     data = request.get_json() or {}
 
@@ -386,20 +498,23 @@ def chat():
         "en"
     )
 
-    # -----------------------------------------------------
+
+    # =====================================================
     # VALIDATE LANGUAGE
-    # -----------------------------------------------------
+    # =====================================================
 
     if language not in LANGUAGE_NAMES:
 
         language = "en"
 
-    language_name = LANGUAGE_NAMES[language]
+    language_name = LANGUAGE_NAMES[
+        language
+    ]
 
 
-    # -----------------------------------------------------
+    # =====================================================
     # EMPTY MESSAGE
-    # -----------------------------------------------------
+    # =====================================================
 
     if not message:
 
@@ -416,15 +531,20 @@ def chat():
         }
 
         return jsonify({
-            "reply": empty_messages[language]
+
+            "reply":
+                empty_messages[language]
+
         })
 
 
-    # -----------------------------------------------------
-    # HEALTHCARE ONLY FILTER
-    # -----------------------------------------------------
+    # =====================================================
+    # HEALTHCARE FILTER
+    # =====================================================
 
-    if not is_healthcare_question(message):
+    if not is_healthcare_question(
+        message
+    ):
 
         non_healthcare_messages = {
 
@@ -448,14 +568,29 @@ def chat():
                 "Please healthcare-related question kekkunga."
         }
 
+        reply = non_healthcare_messages[
+            language
+        ]
+
+        save_chat_history(
+            user_uid,
+            user_email,
+            message,
+            reply,
+            language
+        )
+
         return jsonify({
-            "reply": non_healthcare_messages[language]
+
+            "reply":
+                reply
+
         })
 
 
-    # -----------------------------------------------------
+    # =====================================================
     # LOWERCASE VERSION
-    # -----------------------------------------------------
+    # =====================================================
 
     message_lower = message.lower()
 
@@ -471,11 +606,12 @@ def chat():
         if pattern in message_lower:
 
             document_id = doc_id
+
             break
 
 
     # =====================================================
-    # FIRESTORE RESPONSE
+    # FIRESTORE MEDICAL RESPONSE
     # =====================================================
 
     if document_id:
@@ -484,19 +620,18 @@ def chat():
 
             doc = (
                 db
-                .collection("medical_knowledge")
-                .document(document_id)
+                .collection(
+                    "medical_knowledge"
+                )
+                .document(
+                    document_id
+                )
                 .get()
             )
 
             if doc.exists:
 
                 medical_data = doc.to_dict()
-
-                topic = medical_data.get(
-                    "topic",
-                    "Unknown"
-                )
 
                 symptoms = medical_data.get(
                     "symptoms",
@@ -514,34 +649,33 @@ def chat():
                 )
 
 
-                # -------------------------------------------------
+                # =========================================
                 # ENGLISH
-                # -------------------------------------------------
+                # =========================================
 
                 if language == "en":
 
                     reply = (
-                        f"### Possible Causes / Symptoms\n"
+                        f"Possible Causes / Symptoms\n"
                         f"{symptoms}\n\n"
-
-                        f"### What You Can Do\n"
+                        f"What You Can Do\n"
                         f"{advice}\n\n"
-
-                        f"### Warning Signs\n"
+                        f"Warning Signs\n"
                         f"{warning}\n\n"
-
-                        f"Note: This information is for general "
-                        f"health guidance only."
+                        f"Note: This information is for general health guidance only."
                     )
 
+                    
 
-                # -------------------------------------------------
+
+                # =========================================
                 # TAMIL
-                # -------------------------------------------------
+                # =========================================
 
                 elif language == "ta":
 
                     reply = (
+
                         f"### பொதுவான அறிகுறிகள்\n"
                         f"{symptoms}\n\n"
 
@@ -556,13 +690,14 @@ def chat():
                     )
 
 
-                # -------------------------------------------------
+                # =========================================
                 # TANGLISH
-                # -------------------------------------------------
+                # =========================================
 
                 else:
 
                     reply = (
+
                         f"### Common Symptoms\n"
                         f"{symptoms}\n\n"
 
@@ -577,8 +712,23 @@ def chat():
                     )
 
 
+                # =========================================
+                # SAVE CHAT HISTORY
+                # =========================================
+
+                save_chat_history(
+                    user_uid,
+                    user_email,
+                    message,
+                    reply,
+                    language
+                )
+
                 return jsonify({
-                    "reply": reply
+
+                    "reply":
+                        reply
+
                 })
 
 
@@ -649,21 +799,26 @@ advise the user to seek urgent medical attention.
 
 ANSWER FORMAT:
 
-Give the answer in a clear and structured format.
+Give the answer in a clean and professional format.
 
-Use these sections when relevant:
+Use simple section headings without symbols.
 
-### Possible Causes
-- Give a few common possible causes.
-- Do not diagnose.
+Use these headings when relevant:
 
-### What You Can Do
-- Give simple and safe general steps.
-- Use short bullet points.
+Possible Causes
+What You Can Do
+When to Seek Medical Help
 
-### When to Seek Medical Help
-- Include this only when symptoms are severe,
-  persistent, worsening, or have warning signs.
+Do not use Markdown symbols such as:
+###
+**
+*
+---
+or bullet symbols.
+
+Write each point as a separate simple line.
+
+Keep the response short, clear, and easy to read.
 
 Keep the response reasonably short.
 
@@ -676,13 +831,33 @@ Do not recommend prescription medicines or specific dosages.
 
 
         response = client.models.generate_content(
+
             model="gemini-3-flash-preview",
+
             contents=prompt
+        )
+
+        reply = response.text
+
+
+        # =================================================
+        # SAVE GEMINI CHAT HISTORY
+        # =================================================
+
+        save_chat_history(
+            user_uid,
+            user_email,
+            message,
+            reply,
+            language
         )
 
 
         return jsonify({
-            "reply": response.text
+
+            "reply":
+                reply
+
         })
 
 
@@ -692,6 +867,7 @@ Do not recommend prescription medicines or specific dosages.
             "Gemini Error:",
             e
         )
+
 
         error_messages = {
 
@@ -705,8 +881,30 @@ Do not recommend prescription medicines or specific dosages.
                 "Sorry, unga question-a ippo process panna mudiyala. Konjam neram kazhichu again try pannunga."
         }
 
+
+        reply = error_messages[
+            language
+        ]
+
+
+        # =================================================
+        # SAVE ERROR RESPONSE
+        # =================================================
+
+        save_chat_history(
+            user_uid,
+            user_email,
+            message,
+            reply,
+            language
+        )
+
+
         return jsonify({
-            "reply": error_messages[language]
+
+            "reply":
+                reply
+
         })
 
 
